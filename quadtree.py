@@ -1,3 +1,8 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from visualizer.main import Visualizer
+
 class Point:
     def __init__(self, x, y):
         # Punkt w dwuwymiarowej przestrzeni
@@ -9,7 +14,7 @@ class Point:
         return f"Point({self.x}, {self.y})"
 
 
-class Rectangle:
+class Boundary:
     def __init__(self, x, y, width, height):
         # Prostokąt definiowany przez lewy górny róg (x, y), szerokość i wysokość
         self.x = x  # Współrzędna x lewego górnego rogu
@@ -44,15 +49,14 @@ class Quadtree:
         half_w, half_h = w / 2, h / 2
 
         # Tworzenie czterech podregionów: górny-lewy, górny-prawy, dolny-lewy, dolny-prawy
-        self.upperleft = Quadtree(Rectangle(x, y, half_w, half_h), self.capacity)
-        self.upperright = Quadtree(Rectangle(x + half_w, y, half_w, half_h), self.capacity)
-        self.lowerleft = Quadtree(Rectangle(x, y + half_h, half_w, half_h), self.capacity)
-        self.lowerright = Quadtree(Rectangle(x + half_w, y + half_h, half_w, half_h), self.capacity)
+        self.upperleft = Quadtree(Boundary(x, y, half_w, half_h), self.capacity)
+        self.upperright = Quadtree(Boundary(x + half_w, y, half_w, half_h), self.capacity)
+        self.lowerleft = Quadtree(Boundary(x, y + half_h, half_w, half_h), self.capacity)
+        self.lowerright = Quadtree(Boundary(x + half_w, y + half_h, half_w, half_h), self.capacity)
 
         self.divided = True  # Oznaczamy, że Quadtree zostało podzielone
 
     def insert(self, point):
-        """Dodaje punkt do Quadtree."""
         if not self.boundary.contains(point):
             return False  # Punkt znajduje się poza granicami tego Quadtree
 
@@ -64,6 +68,7 @@ class Quadtree:
         if not self.divided:
             # Jeśli osiągnięto pojemność, dzielimy Quadtree na podregiony
             self.subdivide()
+
 
         # Próbujemy wstawić punkt do jednego z podregionów
         return (self.upperleft.insert(point) or
@@ -92,7 +97,34 @@ class Quadtree:
             self.lowerright.query(range_rect, found_points)
 
         return found_points
+    
+    def visualize(self, visualizer):
+        """Wizualizuje Quadtree za pomocą klasy Visualizer."""
+        # Dodaj granice tego Quadtree jako prostokąt
+        x=self.boundary.x
+        y=self.boundary.y
+        width = self.boundary.width
+        height = self.boundary.height
+        visualizer.add_line_segment(((x,y),(x,y+height)))
+        visualizer.add_line_segment(((x,y),(x+width,y)))
+        visualizer.add_line_segment(((x+width,y),(x+width,y+height)))
+        visualizer.add_line_segment(((x,y+height),(x+width,y+height)))
+
+
+        # Dodaj punkty w tym Quadtree
+        for point in self.points:
+            visualizer.add_point((point.x, point.y), color='red')
+
+        # Jeśli Quadtree jest podzielone, wizualizuj podregiony
+        if self.divided:
+            self.upperleft.visualize(visualizer)
+            self.upperright.visualize(visualizer)
+            self.lowerleft.visualize(visualizer)
+            self.lowerright.visualize(visualizer)
+        
+        return visualizer
 
     def __repr__(self):
         # Reprezentacja Quadtree jako tekst
-        return f"Quadtree(boundary={self.boundary}, points={self.points}, divided={self.divided})"
+        return self.vis.show()
+

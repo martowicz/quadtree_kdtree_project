@@ -1,0 +1,3 @@
+from quadtree import Point
+
+
