@@ -1,14 +1,10 @@
-
 from __future__ import annotations
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 from visualizer.main import Visualizer
 from geo_structures import RectangleArea, Point
 
 
 class QuadtreeNode:
-    def __init__(self, rectangle: RectangleArea):
+    def __init__(self, rectangle: RectangleArea) -> None:
         self.rectangle = rectangle  # Całkowity obszar tego węzła
         self.points = []  # Punkty w tym węźle
         self.upper_left = None  # Lewy górny kwadrant
@@ -16,9 +12,10 @@ class QuadtreeNode:
         self.lower_left = None  # Lewy dolny kwadrant
         self.lower_right = None  # Prawy dolny kwadrant
         self.is_leaf = True  # Czy jest liściem (czy ma dzieci)
-    
-    def __str__(self):
+
+    def __str__(self) -> str:
         return f"QuadtreeNode({self.rectangle}, Points={len(self.points)}, is_leaf={self.is_leaf})"
+
 
 class Quadtree:
     def __init__(self, points: list[Point], max_points_per_node: int = 4):
@@ -30,10 +27,9 @@ class Quadtree:
             max(points, key=lambda p: p.y).y,  # Maksymalna wartość y
         )
 
-        
         self.vis = Visualizer()
         for point in points:
-            self.vis.add_point((point.x, point.y), color='red', s=5)
+            self.vis.add_point((point.x, point.y), color="red", s=5)
 
         self.root = self.build_tree(self.max_rectangle, points)
 
@@ -43,10 +39,18 @@ class Quadtree:
         # Dodaj punkty do węzła, jeśli nie przekraczają limitu
         if len(points) <= self.max_points_per_node:
             node.points = points
-            self.vis.add_line_segment(((rectangle.min_x, rectangle.min_y), (rectangle.min_x, rectangle.max_y)))
-            self.vis.add_line_segment(((rectangle.max_x, rectangle.min_y), (rectangle.max_x, rectangle.max_y)))
-            self.vis.add_line_segment(((rectangle.min_x, rectangle.max_y), (rectangle.max_x, rectangle.max_y)))
-            self.vis.add_line_segment(((rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y)))
+            self.vis.add_line_segment(
+                ((rectangle.min_x, rectangle.min_y), (rectangle.min_x, rectangle.max_y))
+            )
+            self.vis.add_line_segment(
+                ((rectangle.max_x, rectangle.min_y), (rectangle.max_x, rectangle.max_y))
+            )
+            self.vis.add_line_segment(
+                ((rectangle.min_x, rectangle.max_y), (rectangle.max_x, rectangle.max_y))
+            )
+            self.vis.add_line_segment(
+                ((rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y))
+            )
             return node
 
         # Inaczej, dzielimy przestrzeń na cztery ćwiartki
@@ -56,12 +60,14 @@ class Quadtree:
         # Tworzymy cztery podobszary
         quadrants = [
             RectangleArea(rectangle.min_x, rectangle.min_y, mid_x, mid_y),  # Lewy dolny
-            RectangleArea(mid_x, rectangle.min_y, rectangle.max_x, mid_y),  # Prawy dolny
+            RectangleArea(
+                mid_x, rectangle.min_y, rectangle.max_x, mid_y
+            ),  # Prawy dolny
             RectangleArea(rectangle.min_x, mid_y, mid_x, rectangle.max_y),  # Lewy górny
-            RectangleArea(mid_x, mid_y, rectangle.max_x, rectangle.max_y)   # Prawy górny
+            RectangleArea(
+                mid_x, mid_y, rectangle.max_x, rectangle.max_y
+            ),  # Prawy górny
         ]
-
-        
 
         # Dzielimy punkty na ćwiartki
         quadrant_points = [[] for _ in range(4)]
@@ -78,19 +84,28 @@ class Quadtree:
         node.upper_left = self.build_tree(quadrants[2], quadrant_points[2])
         node.upper_right = self.build_tree(quadrants[3], quadrant_points[3])
 
-        self.vis.add_line_segment(((rectangle.min_x, rectangle.min_y), (rectangle.min_x, rectangle.max_y)))
-        self.vis.add_line_segment(((rectangle.max_x, rectangle.min_y), (rectangle.max_x, rectangle.max_y)))
-        self.vis.add_line_segment(((rectangle.min_x, rectangle.max_y), (rectangle.max_x, rectangle.max_y)))
-        self.vis.add_line_segment(((rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y)))
+        self.vis.add_line_segment(
+            ((rectangle.min_x, rectangle.min_y), (rectangle.min_x, rectangle.max_y))
+        )
+        self.vis.add_line_segment(
+            ((rectangle.max_x, rectangle.min_y), (rectangle.max_x, rectangle.max_y))
+        )
+        self.vis.add_line_segment(
+            ((rectangle.min_x, rectangle.max_y), (rectangle.max_x, rectangle.max_y))
+        )
+        self.vis.add_line_segment(
+            ((rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y))
+        )
 
         return node
 
-    def find(self, rectangle: RectangleArea) -> list[Point]:
-        return self.__find(self.root, rectangle)
-
-    def __find(self, node: QuadtreeNode, rectangle: RectangleArea) -> list[Point]:
+    def find_recursion(
+        self, node: QuadtreeNode, rectangle: RectangleArea
+    ) -> list[Point]:
         res = []
-        if node.rectangle & rectangle is None:  # Jeśli prostokąty nie mają wspólnego obszaru
+        if (
+            node.rectangle & rectangle is None
+        ):  # Jeśli prostokąty nie mają wspólnego obszaru
             return res
 
         # Jeśli to liść, sprawdzamy punkty
@@ -99,17 +114,21 @@ class Quadtree:
         else:
             # Rekurencyjnie sprawdzamy dzieci (cztery ćwiartki)
             if node.lower_left is not None:
-                res.extend(self.__find(node.lower_left, rectangle))
+                res.extend(self.find_recursion(node.lower_left, rectangle))
             if node.lower_right is not None:
-                res.extend(self.__find(node.lower_right, rectangle))
+                res.extend(self.find_recursion(node.lower_right, rectangle))
             if node.upper_left is not None:
-                res.extend(self.__find(node.upper_left, rectangle))
+                res.extend(self.find_recursion(node.upper_left, rectangle))
             if node.upper_right is not None:
-                res.extend(self.__find(node.upper_right, rectangle))
+                res.extend(self.find_recursion(node.upper_right, rectangle))
 
         return res
 
-    def tree_print(self, node: QuadtreeNode):
+    def find(self, rectangle: RectangleArea) -> list[Point]:
+
+        return self.find_recursion(self.root, rectangle)
+
+    def tree_print(self, node: QuadtreeNode) -> None:
         if node is not None:
             print(node)
             self.tree_print(node.upper_left)
@@ -117,5 +136,5 @@ class Quadtree:
             self.tree_print(node.lower_left)
             self.tree_print(node.lower_right)
 
-    def get_vis(self):
+    def get_vis(self) -> None:
         return self.vis

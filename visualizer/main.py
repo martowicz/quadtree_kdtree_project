@@ -6,7 +6,6 @@ from .figures.line import Line
 from .figures.half_line import HalfLine
 from .plot.plot import Plot
 
-
 class Visualizer:
     def __init__(self):
         self.data = []

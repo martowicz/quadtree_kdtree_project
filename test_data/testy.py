@@ -1,3 +1,1 @@
 from quadtree import Point
-
-
