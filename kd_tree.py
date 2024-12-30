@@ -1,5 +1,5 @@
 from __future__ import annotations
-from quick_select import quick_select
+from get_median import get_median
 from geo_structures import RectangleArea, Point
 from visualizer.main import Visualizer
 
@@ -50,8 +50,8 @@ class KdTree:
         p_smaller = []
         p_larger = []
 
-        median_point = quick_select(
-            points, 0, len(points) - 1, (len(points) - 1) // 2, depth % K
+        median_point = get_median(
+            points, 0, len(points) - 1, (len(points) - 1) // 2, depth ,K
         )
 
         # Mediana w danym wymiarze
