@@ -126,6 +126,10 @@ class Kd_tree_vis:
 
     def find(self, rectangle: RectangleArea) -> list[Point]:
         res = []
+        self.vis.add_polygon([(rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y),
+                              (rectangle.max_x, rectangle.max_y), (rectangle.min_x, rectangle.max_y)],
+                             color='purple', alpha=0.1)
+
         self.find_recursive(self.root, rectangle, res)
         return res
 
