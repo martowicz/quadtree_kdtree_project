@@ -4,122 +4,152 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from geo_structures import RectangleArea, Point
 from quadtree import Quadtree
 from kd_tree import KdTree
-from geo_structures import RectangleArea, Point
+from visualizer.main import Visualizer
+
 
 setrecursionlimit(100000)
+plt.style.use("_classic_test_patch")
+plt.rcParams["axes.grid"] = True  # Włącz siatkę
+plt.rcParams["grid.color"] = "gray"  # Kolor siatki
+plt.rcParams["grid.linestyle"] = "--"  # Styl linii siatki (np. przerywana)
+plt.rcParams["grid.linewidth"] = 0.5  # Grubość linii siatki
 
 
-def print_table(df, filename):
-    for n in sorted(list(set(df.n))):
-        quad_time = df[(df.n == n) & (df.type == "quad")].time.mean()
+def get_time(generate_points, n_list, data_type_name):
+
+    tree_construct_time = []
+    small_rect_time = []
+    big_rect_time = []
+
+    for n in n_list:
+        print(n)
+        for _ in range(10):
+
+            x=np.random.uniform(0, 4975)
+            y=np.random.uniform(0, 4975)
+            small_rectangle = RectangleArea(x, y, x + 25, y + 25)
+            x=np.random.uniform(0, 4000)
+            y=np.random.uniform(0, 4000)
+            big_rectangle = RectangleArea(x, y, x +  1000, y + 1000)
+            points = generate_points(n)
+
+            start_time = time.process_time()
+            tree_quad = Quadtree(points)
+            stop_time = time.process_time()
+            tree_construct_time.append([n, "quad", stop_time - start_time])
+
+            start_time = time.process_time()
+            tree_kd = KdTree(points)
+            stop_time = time.process_time()
+            tree_construct_time.append([n, "kd", stop_time - start_time])
+
+            start_time = time.process_time()
+            f1 = tree_quad.find(small_rectangle)
+            stop_time = time.process_time()
+            small_rect_time.append([n, "quad", stop_time - start_time])
+
+            start_time = time.process_time()
+            f2 = tree_kd.find(small_rectangle)
+            stop_time = time.process_time()
+            small_rect_time.append([n, "kd", stop_time - start_time])
+
+            assert set(f1) == set(f2)
+            # dodatkowo sprawdzam czy obydwa algorytmy dały ten sam wynik
+
+            start_time = time.process_time()
+            f1 = tree_quad.find(big_rectangle)
+            stop_time = time.process_time()
+            big_rect_time.append([n, "quad", stop_time - start_time])
+
+            start_time = time.process_time()
+            f2 = tree_kd.find(big_rectangle)
+            stop_time = time.process_time()
+            big_rect_time.append([n, "kd", stop_time - start_time])
+
+            assert set(f1) == set(f2)
+            # dodatkowo sprawdzam czy obydwa algorytmy dały ten sam wynik
+
+    tree_construct_time = pd.DataFrame(
+        tree_construct_time, columns=["n", "type", "time"]
+    )
+    small_rect_time = pd.DataFrame(small_rect_time, columns=["n", "type", "time"])
+    big_rect_time = pd.DataFrame(big_rect_time, columns=["n", "type", "time"])
+
+    generate_graph(tree_construct_time, data_type_name + "_tree_construction_time")
+    generate_graph(small_rect_time, data_type_name + "_small_rect_time")
+    generate_graph(big_rect_time, data_type_name + "_big_rect_time")
+
+
+def generate_graph(df, filename):
+
+    # wypisuje dane do tabeli w formacie typst
+
+    for n in sorted(
+        list(set(df.n))
+    ):  # Iteruje po unikalnych wartościach n (liczbie punktów) w DataFrame.
+        quad_time = df[
+            (df.n == n) & (df.type == "quad")
+        ].time.mean()  # liczy średnią dla danego n i danego typu algorytmu
         kd_time = df[(df.n == n) & (df.type == "kd")].time.mean()
         print(f"{n} & {quad_time:.4f} & {kd_time:.4f} \\\\")
 
-    sns.lineplot(data=df, x="n", y="time", hue="type", errorbar="se")
-    plt.ylabel("czas [s]")
-    plt.legend(title="typ drzewa")
+    sns.lineplot(
+        data=df, x="n", y="time", hue="type", errorbar="se"
+    )  # dodaje osie oraz wykres wraz ze standardowym błędem średniej
+
+    plt.ylabel("czas [s]")  # etykieta osi pionowej
+    plt.legend(title="typ drzewa")  # legenda
     plt.savefig(
         f"/home/wiktoro/Studia/Geometryczne/quadtree_kdtree_project/graphs/{filename}.pdf"
-    )
-    plt.clf()
+    )  # ścieżka do folderu z wykresami
+    plt.clf()  # czyści obecne dane w plt
 
 
-def calculate(distribution, ns, filename_prefix):
-    construction_times = []
-    small_find_times = []
-    big_find_times = []
-
-    for n in ns:
-        print(n)
-        for _ in range(15):
-            points = distribution(n)
-            small_rectangle = get_small_rectangle()  # 1/100
-            big_rectangle = get_big_rectangle()  # 1/4
-
-            start_time = time.process_time()
-            tree1 = Quadtree(points)
-            construction_times.append([n, "quad", time.process_time() - start_time])
-            start_time = time.process_time()
-            tree2 = KdTree(points)
-            construction_times.append([n, "kd", time.process_time() - start_time])
-
-            start_time = time.process_time()
-            f1 = tree1.find(small_rectangle)
-            small_find_times.append([n, "quad", time.process_time() - start_time])
-            start_time = time.process_time()
-            f2 = tree2.find(small_rectangle)
-            small_find_times.append([n, "kd", time.process_time() - start_time])
-            assert set(f1) == set(f2)
-
-            start_time = time.process_time()
-            f1 = tree1.find(big_rectangle)
-            big_find_times.append([n, "quad", time.process_time() - start_time])
-            start_time = time.process_time()
-            f2 = tree2.find(big_rectangle)
-            big_find_times.append([n, "kd", time.process_time() - start_time])
-            assert set(f1) == set(f2)
-
-    construction_times = pd.DataFrame(construction_times, columns=["n", "type", "time"])
-    small_find_times = pd.DataFrame(small_find_times, columns=["n", "type", "time"])
-    big_find_times = pd.DataFrame(big_find_times, columns=["n", "type", "time"])
-
-    print_table(construction_times, filename_prefix + "_construction_time")
-    print_table(small_find_times, filename_prefix + "_find_small_time")
-    print_table(big_find_times, filename_prefix + "_find_big_time")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def get_small_rectangle():
-    x = np.random.uniform(-1000, 980)
-    y = np.random.uniform(-1000, 980)
-    return RectangleArea(x, y, x + 20, y + 20)
-
-
-def get_big_rectangle():
-    x = np.random.uniform(-1000, 0)
-    y = np.random.uniform(-1000, 0)
-    return RectangleArea(x, y, x + 1000, y + 1000)
-
-
-
-
-
-
-def uniformly_distributed_points(n):
+def uniform_points(n):
     return [
         Point(x, y)
-        for x, y in zip(
-            np.random.uniform(-1000, 1000, n), np.random.uniform(-1000, 1000, n)
-        )
+        for x, y in zip(np.random.uniform(0, 5000, n), np.random.uniform(0, 5000, n))
     ]
 
 
-def pair_of_points(n):
+def normal_points(n):
     points = []
-    points.append(Point(1000, 1000))
-
-    for _ in range(n // 2):
-        x = np.random.uniform(-100, 100)
-        y = np.random.uniform(-100, 100)
+    for x, y in np.random.normal(2500, 150, (n, 2)):
         points.append(Point(x, y))
-        points.append(Point(x + 1e-8, y))
+
     return points
 
 
-# Testowanie funkcji z różnymi rozkładami punktów
+def clusters_points(n):
+    points = []
 
-#calculate(uniformly_distributed_points, (10_000, 20_000, 30_000, 40_000), 'uniform')
-calculate(pair_of_points, (10_000, 15_000), "pairs")
+    for _ in range(n // 5):
+        points.append(
+            Point(np.random.uniform(1000, 1400), np.random.uniform(1000, 1600))
+        )
+        points.append(
+            Point(np.random.uniform(3000, 3500), np.random.uniform(3000, 3500))
+        )
+        points.append(Point(np.random.uniform(4000, 4500), np.random.uniform(0, 500)))
+        points.append(
+            Point(np.random.uniform(500, 1000), np.random.uniform(4000, 4500))
+        )
+        points.append(
+            Point(np.random.uniform(2500, 3000), np.random.uniform(2000, 2500))
+        )
+
+    return points
+
+
+vis = Visualizer()
+vis.add_point
+# Testowanie funkcji z różnymi rozkładami punktów
+ns = [2000,10000, 20000,30000,40000,50000]
+
+
+#get_time(uniform_points, ns, "uniform")
+get_time(normal_points, ns, "normal")
+#get_time(clusters_points, ns, "clusters")
