@@ -35,22 +35,15 @@ class Quadtree_vis:
 
     def build_tree(self, rectangle: RectangleArea, points: list[Point]) -> QuadtreeNode:
         node = QuadtreeNode(rectangle)
+        self.vis.add_polygon([(rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y),
+                              (rectangle.max_x, rectangle.max_y), (rectangle.min_x, rectangle.max_y)],
+                             color='black',fill=False)
 
         # Dodaj punkty do węzła, jeśli nie przekraczają limitu
         if len(points) <= self.max_points_per_node:
             node.points = points
-            self.vis.add_line_segment(
-                ((rectangle.min_x, rectangle.min_y), (rectangle.min_x, rectangle.max_y)), color='black', linewidth=1
-            )
-            self.vis.add_line_segment(
-                ((rectangle.max_x, rectangle.min_y), (rectangle.max_x, rectangle.max_y)), color='black', linewidth=1
-            )
-            self.vis.add_line_segment(
-                ((rectangle.min_x, rectangle.max_y), (rectangle.max_x, rectangle.max_y)), color='black', linewidth=1
-            )
-            self.vis.add_line_segment(
-                ((rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y)), color='black', linewidth=1
-            )
+
+
             return node
 
         # Inaczej, dzielimy przestrzeń na cztery ćwiartki
@@ -83,19 +76,6 @@ class Quadtree_vis:
         node.lower_right = self.build_tree(quadrants[1], quadrant_points[1])
         node.upper_left = self.build_tree(quadrants[2], quadrant_points[2])
         node.upper_right = self.build_tree(quadrants[3], quadrant_points[3])
-
-        self.vis.add_line_segment(
-            ((rectangle.min_x, rectangle.min_y), (rectangle.min_x, rectangle.max_y)), color='black', linewidth=1
-        )
-        self.vis.add_line_segment(
-            ((rectangle.max_x, rectangle.min_y), (rectangle.max_x, rectangle.max_y)),color='black', linewidth=1
-        )
-        self.vis.add_line_segment(
-            ((rectangle.min_x, rectangle.max_y), (rectangle.max_x, rectangle.max_y)),color='black', linewidth=1
-        )
-        self.vis.add_line_segment(
-            ((rectangle.min_x, rectangle.min_y), (rectangle.max_x, rectangle.min_y)),color='black', linewidth=1
-        )
 
         return node
 
