@@ -76,7 +76,7 @@ class Quadtree:
                 self.lowerleft.insert(point) or
                 self.lowerright.insert(point))
 
-    def query(self, range_rect, found_points=None):
+    def find(self, range_rect, found_points=None):
         """Znajduje wszystkie punkty w danym prostokącie zapytania."""
         if found_points is None:
             found_points = []  # Inicjalizacja listy wynikowej
@@ -91,10 +91,10 @@ class Quadtree:
 
         # Jeśli Quadtree jest podzielone, przeszukujemy podregiony
         if self.divided:
-            self.upperleft.query(range_rect, found_points)
-            self.upperright.query(range_rect, found_points)
-            self.lowerleft.query(range_rect, found_points)
-            self.lowerright.query(range_rect, found_points)
+            self.upperleft.find(range_rect, found_points)
+            self.upperright.find(range_rect, found_points)
+            self.lowerleft.find(range_rect, found_points)
+            self.lowerright.find(range_rect, found_points)
 
         return found_points
     
