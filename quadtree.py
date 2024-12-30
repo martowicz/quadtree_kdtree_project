@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from visualizer.main import Visualizer
+from geo_structures import RectangleArea, Point
 
 class Point:
     def __init__(self, x, y):
@@ -64,7 +65,7 @@ class Quadtree:
             # Jeśli mamy miejsce, dodajemy punkt
             self.points.append(point)
             return True
-        
+
         if not self.divided:
             # Jeśli osiągnięto pojemność, dzielimy Quadtree na podregiony
             self.subdivide()
@@ -97,7 +98,7 @@ class Quadtree:
             self.lowerright.query(range_rect, found_points)
 
         return found_points
-    
+
     def visualize(self, visualizer):
         """Wizualizuje Quadtree za pomocą klasy Visualizer."""
         # Dodaj granice tego Quadtree jako prostokąt
@@ -121,10 +122,9 @@ class Quadtree:
             self.upperright.visualize(visualizer)
             self.lowerleft.visualize(visualizer)
             self.lowerright.visualize(visualizer)
-        
+
         return visualizer
 
     def __repr__(self):
         # Reprezentacja Quadtree jako tekst
         return self.vis.show()
-
