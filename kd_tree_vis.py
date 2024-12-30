@@ -75,7 +75,7 @@ class Kd_tree_vis:
 
         min_x, min_y, max_x, max_y = rectangle.get_extrema()
         if depth % 2 == 0:  # Podział wzdłuż osi x
-            self.vis.add_line_segment(((median, min_y), (median, max_y)), color="black",linewidth=1)
+            self.vis.add_line_segment(((median, min_y), (median, max_y)), color="black",linewidth=2)
             node_smaller = self.build_tree(
                 p_smaller, depth + 1, RectangleArea(min_x, min_y, median, max_y)
             )
@@ -83,7 +83,7 @@ class Kd_tree_vis:
                 p_larger, depth + 1, RectangleArea(median, min_y, max_x, max_y)
             )
         else:  # Podział wzdłuż osi y
-            self.vis.add_line_segment(((min_x, median), (max_x, median)), color="black",linewidth=1)
+            self.vis.add_line_segment(((min_x, median), (max_x, median)), color="black",linewidth=2)
             node_smaller = self.build_tree(
                 p_smaller, depth + 1, RectangleArea(min_x, min_y, max_x, median)
             )
