@@ -30,9 +30,9 @@ class KdTree:
             max(points, key=lambda p: p.x).x,  # Maksymalna wartość x
             max(points, key=lambda p: p.y).y,  # Maksymalna wartość y
         )
-        self.vis = Visualizer()
-        for point in points:
-            self.vis.add_point((point.x, point.y), color="red", s=5)
+        # self.vis = Visualizer()
+        # for point in points:
+        #     self.vis.add_point((point.x, point.y), color="red", s=5)
 
         self.root = self.build_tree(self.points, 0, self.max_rectangle)
 
@@ -75,7 +75,7 @@ class KdTree:
 
         min_x, min_y, max_x, max_y = rectangle.get_extrema()
         if depth % 2 == 0:  # Podział wzdłuż osi x
-            self.vis.add_line_segment(((median, min_y), (median, max_y)), color="black")
+            #   self.vis.add_line_segment(((median, min_y), (median, max_y)), color="black")
             node_smaller = self.build_tree(
                 p_smaller, depth + 1, RectangleArea(min_x, min_y, median, max_y)
             )
@@ -83,7 +83,7 @@ class KdTree:
                 p_larger, depth + 1, RectangleArea(median, min_y, max_x, max_y)
             )
         else:  # Podział wzdłuż osi y
-            self.vis.add_line_segment(((min_x, median), (max_x, median)), color="black")
+            # self.vis.add_line_segment(((min_x, median), (max_x, median)), color="black")
             node_smaller = self.build_tree(
                 p_smaller, depth + 1, RectangleArea(min_x, min_y, max_x, median)
             )
@@ -100,12 +100,12 @@ class KdTree:
         if node_smaller.leaf_point is not None:
             node.leafs_list.append(node_smaller)
         else:
-            node.leafs_list.extend(node_smaller.leafs_list)
+            node.leafs_list += node_smaller.leafs_list
 
         if node_larger.leaf_point is not None:
             node.leafs_list.append(node_larger)
         else:
-            node.leafs_list.extend(node_larger.leafs_list)
+            node.leafs_list += node_larger.leafs_list
 
         return node
 
@@ -125,12 +125,6 @@ class KdTree:
         res = []
         self.find_recursive(self.root, rectangle, res)
         return res
-
-    def tree_print(self, node: KdTreeNode):
-        if node is not None:
-            print(node)
-            self.tree_print(node.left_node)
-            self.tree_print(node.right_node)
 
     def get_vis(self):
         return self.vis

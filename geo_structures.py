@@ -18,6 +18,14 @@ class Point:
         else:
             return self.y
 
+    def __eq__(self, other):
+        if isinstance(other, Point):
+            return self.x == other.x and self.y == other.y
+        return False
+
+    def __hash__(self):
+        return hash((self.x, self.y))
+
 
 class RectangleArea:
     def __init__(self, min_x: float, min_y: float, max_x: float, max_y: float):
@@ -28,9 +36,6 @@ class RectangleArea:
 
     def get_extrema(self):
         return (self.min_x, self.min_y, self.max_x, self.max_y)
-
-    def __str__(self):
-        return f"Rect({self.min_x},{self.min_y},{self.max_x},{self.max_y})"
 
     def __eq__(self, other: RectangleArea) -> bool:
         if not isinstance(other, RectangleArea):
