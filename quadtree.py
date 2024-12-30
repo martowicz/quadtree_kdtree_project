@@ -4,38 +4,6 @@ import matplotlib.pyplot as plt
 from visualizer.main import Visualizer
 from geo_structures import RectangleArea, Point
 
-class Point:
-    def __init__(self, x, y):
-        # Punkt w dwuwymiarowej przestrzeni
-        self.x = x
-        self.y = y
-
-    def __repr__(self):
-        # Reprezentacja punktu jako tekst
-        return f"Point({self.x}, {self.y})"
-
-
-class Boundary:
-    def __init__(self, x, y, width, height):
-        # Prostokąt definiowany przez lewy górny róg (x, y), szerokość i wysokość
-        self.x = x  # Współrzędna x lewego górnego rogu
-        self.y = y  # Współrzędna y lewego górnego rogu
-        self.width = width  # Szerokość prostokąta
-        self.height = height  # Wysokość prostokąta
-
-    def contains(self, point):
-        """Sprawdza, czy punkt znajduje się w obrębie prostokąta."""
-        return (self.x <= point.x < self.x + self.width and
-                self.y <= point.y < self.y + self.height)
-
-    def intersects(self, range_rect):
-        """Sprawdza, czy prostokąt przecina się z innym prostokątem."""
-        return not (range_rect.x > self.x + self.width or
-                    range_rect.x + range_rect.width < self.x or
-                    range_rect.y > self.y + self.height or
-                    range_rect.y + range_rect.height < self.y)
-
-
 class Quadtree:
     def __init__(self, boundary, capacity):
         # Inicjalizacja Quadtree z prostokątem granicznym i maksymalną pojemnością punktów
@@ -46,19 +14,20 @@ class Quadtree:
 
     def subdivide(self):
         """Dzieli Quadtree na cztery mniejsze regiony."""
-        x, y, w, h = self.boundary.x, self.boundary.y, self.boundary.width, self.boundary.height
-        half_w, half_h = w / 2, h / 2
+        x1, y1, x2, y2 = self.boundary.min_x, self.boundary.min_y, self.boundary.max_x, self.boundary.max_y
+        x=(x1+x2)/2
+        y=(y1+y2)/2
 
         # Tworzenie czterech podregionów: górny-lewy, górny-prawy, dolny-lewy, dolny-prawy
-        self.upperleft = Quadtree(Boundary(x, y, half_w, half_h), self.capacity)
-        self.upperright = Quadtree(Boundary(x + half_w, y, half_w, half_h), self.capacity)
-        self.lowerleft = Quadtree(Boundary(x, y + half_h, half_w, half_h), self.capacity)
-        self.lowerright = Quadtree(Boundary(x + half_w, y + half_h, half_w, half_h), self.capacity)
+        self.upperleft = Quadtree(RectangleArea(x1,y,x,y2), self.capacity)
+        self.upperright = Quadtree(RectangleArea(x,y,x2,y2), self.capacity)
+        self.lowerleft = Quadtree(RectangleArea(x,y1,x2,y), self.capacity)
+        self.lowerright = Quadtree(RectangleArea(x1,y1,x,y), self.capacity)
 
         self.divided = True  # Oznaczamy, że Quadtree zostało podzielone
 
     def insert(self, point):
-        if not self.boundary.contains(point):
+        if not self.boundary.__contains__(point):
             return False  # Punkt znajduje się poza granicami tego Quadtree
 
         if len(self.points) < self.capacity:
@@ -82,12 +51,12 @@ class Quadtree:
         if found_points is None:
             found_points = []  # Inicjalizacja listy wynikowej
 
-        if not self.boundary.intersects(range_rect):
+        if self.boundary.__and__(range_rect) is None:
             return found_points  # Brak przecięcia, zwracamy pustą listę
 
         # Sprawdzamy punkty w bieżącym regionie
         for point in self.points:
-            if range_rect.contains(point):
+            if range_rect.__contains__(point):
                 found_points.append(point)
 
         # Jeśli Quadtree jest podzielone, przeszukujemy podregiony
@@ -102,15 +71,15 @@ class Quadtree:
     def visualize(self, visualizer):
         """Wizualizuje Quadtree za pomocą klasy Visualizer."""
         # Dodaj granice tego Quadtree jako prostokąt
-        x=self.boundary.x
-        y=self.boundary.y
-        width = self.boundary.width
-        height = self.boundary.height
-        visualizer.add_line_segment(((x,y),(x,y+height)))
-        visualizer.add_line_segment(((x,y),(x+width,y)))
-        visualizer.add_line_segment(((x+width,y),(x+width,y+height)))
-        visualizer.add_line_segment(((x,y+height),(x+width,y+height)))
-
+        x1=self.boundary.min_x
+        y1=self.boundary.min_y
+        x2=self.boundary.max_x
+        y2=self.boundary.max_y
+        
+        visualizer.add_line_segment(((x1,y1),(x1,y2)))
+        visualizer.add_line_segment(((x1,y1),(x2,y1)))
+        visualizer.add_line_segment(((x2,y2),(x1,y2)))
+        visualizer.add_line_segment(((x2,y2),(x2,y1)))
 
         # Dodaj punkty w tym Quadtree
         for point in self.points:
@@ -124,7 +93,3 @@ class Quadtree:
             self.lowerright.visualize(visualizer)
 
         return visualizer
-
-    def __repr__(self):
-        # Reprezentacja Quadtree jako tekst
-        return self.vis.show()
