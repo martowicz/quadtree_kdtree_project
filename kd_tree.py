@@ -21,7 +21,9 @@ class KdTreeNode:
 
 class KdTree:
     def __init__(self, points: list[Point]):
-        self.points = list(set(points))
+
+
+        self.points = points
 
         self.max_rectangle = RectangleArea(
             min(points, key=lambda p: p.x).x,  # Minimalna wartość x
@@ -31,8 +33,7 @@ class KdTree:
         )
         self.vis = Visualizer()
         for point in points:
-            self.vis.add_point((point.x, point.y), color='red', s=5)
-
+            self.vis.add_point((point.x, point.y), color="red", s=5)
 
         self.root = self.build_tree(self.points, 0, self.max_rectangle)
 
@@ -71,12 +72,13 @@ class KdTree:
                     p_larger.append(point)
                 equal_counter += 1
 
-        #print(p_smaller," _____ ",p_larger)
+        # print(p_smaller," _____ ",p_larger)
 
         min_x, min_y, max_x, max_y = rectangle.get_extrema()
         if depth % 2 == 0:  # Podział wzdłuż osi x
-            self.vis.add_line_segment(((median, min_y), (median, max_y)), color='black', s=2)
-
+            self.vis.add_line_segment(
+                ((median, min_y), (median, max_y)), color="black"
+            )
             node_smaller = self.build_tree(
                 p_smaller, depth + 1, RectangleArea(min_x, min_y, median, max_y)
             )
@@ -84,8 +86,9 @@ class KdTree:
                 p_larger, depth + 1, RectangleArea(median, min_y, max_x, max_y)
             )
         else:  # Podział wzdłuż osi y
-            self.vis.add_line_segment(((min_x, median), (max_x, median)), color='black', s=2)
-
+            self.vis.add_line_segment(
+                ((min_x, median), (max_x, median)), color="black"
+            )
             node_smaller = self.build_tree(
                 p_smaller, depth + 1, RectangleArea(min_x, min_y, max_x, median)
             )
@@ -111,8 +114,6 @@ class KdTree:
 
         return node
 
-
-
     def __find(self, node: KdTreeNode, rectangle: RectangleArea, res: list[Point]):
         if rectangle & node.rectangle is None:
             return
@@ -128,9 +129,11 @@ class KdTree:
         self.__find(self.root, rectangle, res)
         return res
 
-
     def tree_print(self, node: KdTreeNode):
         if node is not None:
             print(node)
             self.tree_print(node.left)
             self.tree_print(node.right)
+
+    def get_vis(self):
+        return self.vis
