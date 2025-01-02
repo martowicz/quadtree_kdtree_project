@@ -12,7 +12,6 @@ class Point:
         return f"Point({self.x}, {self.y})"
 
     def get(self, dim):
-
         if dim == 0:
             return self.x
         else:

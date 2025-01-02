@@ -7,15 +7,13 @@ import seaborn as sns
 from geo_structures import RectangleArea, Point
 from quadtree import Quadtree
 from kd_tree import KdTree
-from visualizer.main import Visualizer
-
 
 setrecursionlimit(100000)
 plt.style.use("_classic_test_patch")
-plt.rcParams["axes.grid"] = True  # Włącz siatkę
-plt.rcParams["grid.color"] = "gray"  # Kolor siatki
-plt.rcParams["grid.linestyle"] = "--"  # Styl linii siatki (np. przerywana)
-plt.rcParams["grid.linewidth"] = 0.5  # Grubość linii siatki
+plt.rcParams["axes.grid"] = True
+plt.rcParams["grid.color"] = "gray"
+plt.rcParams["grid.linestyle"] = "--"
+plt.rcParams["grid.linewidth"] = 0.5
 
 
 def get_time(generate_points, n_list, data_type_name):
@@ -28,12 +26,9 @@ def get_time(generate_points, n_list, data_type_name):
         print(n)
         for _ in range(10):
 
-            x=np.random.uniform(0, 4975)
-            y=np.random.uniform(0, 4975)
-            small_rectangle = RectangleArea(x, y, x + 25, y + 25)
-            x=np.random.uniform(0, 4000)
-            y=np.random.uniform(0, 4000)
-            big_rectangle = RectangleArea(x, y, x +  1000, y + 1000)
+
+            small_rectangle = RectangleArea(2500, 2500, 2500 + 25, 2500 + 25)
+            big_rectangle = RectangleArea(2500, 2500, 2500 +  1000, 2500 + 1000)
             points = generate_points(n)
 
             start_time = time.process_time()
@@ -94,7 +89,7 @@ def generate_graph(df, filename):
             (df.n == n) & (df.type == "quad")
         ].time.mean()  # liczy średnią dla danego n i danego typu algorytmu
         kd_time = df[(df.n == n) & (df.type == "kd")].time.mean()
-        print(f"{n} & {quad_time:.4f} & {kd_time:.4f} \\\\")
+        print(f"[${n}$],[${quad_time:.4f}$],[${kd_time:.4f}$],")
 
     sns.lineplot(
         data=df, x="n", y="time", hue="type", errorbar="se"
@@ -117,7 +112,7 @@ def uniform_points(n):
 
 def normal_points(n):
     points = []
-    for x, y in np.random.normal(2500, 150, (n, 2)):
+    for x, y in np.random.normal(2500, 650, (n, 2)):
         points.append(Point(x, y))
 
     return points
@@ -144,12 +139,9 @@ def clusters_points(n):
     return points
 
 
-vis = Visualizer()
-vis.add_point
 # Testowanie funkcji z różnymi rozkładami punktów
 ns = [2000,10000, 20000,30000,40000,50000]
 
-
-#get_time(uniform_points, ns, "uniform")
+get_time(uniform_points, ns, "uniform")
 get_time(normal_points, ns, "normal")
-#get_time(clusters_points, ns, "clusters")
+get_time(clusters_points, ns, "clusters")
