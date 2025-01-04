@@ -91,13 +91,9 @@ class Quadtree_vis:
             res.extend([p for p in node.points if p in rectangle])
         else:
             # Rekurencyjnie sprawdzamy dzieci (cztery ćwiartki)
-            if node.lower_left is not None:
                 res.extend(self.find_recursion(node.lower_left, rectangle))
-            if node.lower_right is not None:
                 res.extend(self.find_recursion(node.lower_right, rectangle))
-            if node.upper_left is not None:
                 res.extend(self.find_recursion(node.upper_left, rectangle))
-            if node.upper_right is not None:
                 res.extend(self.find_recursion(node.upper_right, rectangle))
         for el in res:
             self.vis.add_point((el.x,el.y), color='purple', s=13)
