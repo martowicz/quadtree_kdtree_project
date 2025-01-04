@@ -7,7 +7,7 @@ class Point:
         self.x = x
         self.y = y
 
-    def __repr__(self):
+    def __str__(self):
         # Reprezentacja punktu jako tekst
         return f"Point({self.x}, {self.y})"
 

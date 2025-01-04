@@ -6,11 +6,9 @@ K = 2
 
 
 class KdTreeNode:
-    def __init__(self, axisa: int | None, rectangle: RectangleArea) -> None:
+    def __init__(self, axis: int | None, rectangle: RectangleArea) -> None:
 
-        self.axis = (
-            axisa  # określa którą oś rozpatrujemy tj. dla K=2 czy wedługo osi X czy Y/
-        )
+        self.axis = axis  # określa którą oś rozpatrujemy tj. dla K=2 czy wedługo osi X czy Y/
         self.rectangle = rectangle  # obszar który jesr reprezentowany przez poddtrzewo tego wierzchołka
         self.left_node = None  # lewe dziecko
         self.right_node = None  # prawe dziecko
